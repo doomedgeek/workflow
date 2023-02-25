@@ -30,7 +30,10 @@ jobs:
         fi
 
     - name: Build and test
-      run: npm run build && npm test
+      run: |
+        npm install
+        npm run build
+        npm test
 
     - name: Push changes
       uses: ad-m/github-push-action@master
