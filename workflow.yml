@@ -1,49 +1,54 @@
-name: CI                # Name of the workflow
+name: CI
 
 on:
-  push:                 # Trigger the workflow on push
-    branches: [main]   # Trigger on the main branch
+  push:
+    branches: [main] # trigger the workflow only when there are new commits to the main branch
 
 jobs:
-  build:                # Build job
+  build:
 
-    runs-on: ubuntu-latest    # Use the latest Ubuntu version
+    runs-on: ubuntu-latest # run the job on a Linux-based environment
 
-    steps:                      # List of steps to run
-    - name: Checkout code       # Checkout the code
+    steps:
+    - name: Checkout code # check out the code from the repository
       uses: actions/checkout@v2
 
-    - name: Setup Node.js       # Setup Node.js
+    - name: Setup Node.js # set up Node.js environment
       uses: actions/setup-node@v2
       with:
-        node-version: '14.x'
+        node-version: '14.x' # specify Node.js version
 
-    - name: Install dependencies     # Install project dependencies
+    - name: Install dependencies # install project dependencies
       run: npm install
 
-    - name: Check for updates        # Check for updates in the remote repository
+    - name: Check for updates # check if there are any updates to the code base
       run: |
         git fetch --prune
-        if [ `git rev-parse HEAD` = `git rev-parse @{u}` ]; then
-          echo "No updates available, skipping build"   # No changes, skip the build
+        if [ `git rev-parse HEAD` = `git rev-parse @{u}` ]; then # if there are no updates, skip the build
+          echo "No updates available, skipping build"
           exit 0
         fi
 
-    - name: Build and test               # Build and test the project
+    - name: Build and test # build and test the project
       run: |
-        npm install
-        npm run build
-        npm test
+        npm install # install any new dependencies
+        npm run build # build the project
+        npm test # run tests
 
-    - name: Push changes                 # Push changes to remote repository
+    - name: Push changes # push changes to the repository
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}    # Token to access the repository
-        branch: ${{ github.ref }}                   # Push changes to the same branch
-        force: true                                 # Force the push
+        github_token: ${{ secrets.GITHUB_TOKEN }} # authenticate with the GITHUB_TOKEN secret
+        branch: ${{ github.ref }} # push changes to the same branch that triggered the workflow
+        force: true # force push changes
 
-    - name: Log result                    # Log the result of the push
-      if: ${{ success() }}
+    - name: Log result # log the result of the push
+      if: ${{ success() }} # if the push was successful, log "Push was successful"
       run: echo "Push was successful"
-      else
+      else # otherwise, log "Push failed, please check logs"
       run: echo "Push failed, please check logs"
+
+    - name: Send error log message # log an error message if the build failed
+      if: failure() # if the build failed, log "Build failed! Check the logs for details."
+      run: |
+        echo "Build failed! Check the logs for details."
