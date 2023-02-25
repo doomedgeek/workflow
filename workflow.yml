@@ -1,48 +1,48 @@
-name: CI
+name: CI                # Name of the workflow
 
 on:
-  push:
-    branches: [main]
+  push:                 # Trigger the workflow on push
+    branches: [main]   # Trigger on the main branch
 
 jobs:
-  build:
+  build:                # Build job
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    # Use the latest Ubuntu version
 
-    steps:
-    - name: Checkout code
+    steps:                      # List of steps to run
+    - name: Checkout code       # Checkout the code
       uses: actions/checkout@v2
 
-    - name: Setup Node.js
+    - name: Setup Node.js       # Setup Node.js
       uses: actions/setup-node@v2
       with:
         node-version: '14.x'
 
-    - name: Install dependencies
+    - name: Install dependencies     # Install project dependencies
       run: npm install
 
-    - name: Check for updates
+    - name: Check for updates        # Check for updates in the remote repository
       run: |
         git fetch --prune
         if [ `git rev-parse HEAD` = `git rev-parse @{u}` ]; then
-          echo "No updates available, skipping build"
+          echo "No updates available, skipping build"   # No changes, skip the build
           exit 0
         fi
 
-    - name: Build and test
+    - name: Build and test               # Build and test the project
       run: |
         npm install
         npm run build
         npm test
 
-    - name: Push changes
+    - name: Push changes                 # Push changes to remote repository
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
-        force: true
+        github_token: ${{ secrets.GITHUB_TOKEN }}    # Token to access the repository
+        branch: ${{ github.ref }}                   # Push changes to the same branch
+        force: true                                 # Force the push
 
-    - name: Log result
+    - name: Log result                    # Log the result of the push
       if: ${{ success() }}
       run: echo "Push was successful"
       else
