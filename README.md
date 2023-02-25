@@ -7,7 +7,7 @@ Installation
 
 To get started with this project, you'll need to clone the repository:
 
-git clone https://github.com/your-username/my-awesome-project.git
+git clone https://github.com/doomedgeek/workflow.git        
 
 
 
