@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Check for updates
+      run: |
+        git fetch --prune
+        if [ `git rev-parse HEAD` = `git rev-parse @{u}` ]; then
+          echo "No updates available, skipping build"
+          exit 0
+        fi
+
+    - name: Build and test
+      run: npm run build && npm test
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+        force: true
+
+    - name: Log result
+      if: ${{ success() }}
+      run: echo "Push was successful"
+      else
+      run: echo "Push failed, please check logs"
