@@ -1,0 +1,54 @@
+name: CI/CD # name of the workflow
+
+on:
+  push:
+    branches: [ main ] # trigger the workflow only when there are new commits to the main branch
+  push:
+    branches: [ 'feature/*' ] # trigger the workflow for any feature branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # run the job on a Linux-based environment
+
+    steps:
+    - uses: actions/checkout@v2 # step 1: checkout code from the repository
+    - name: Setup Node.js # step 2: set up Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x' # specify Node.js version
+    - name: Install Dependencies # step 3: install project dependencies
+      run: npm install
+    - name: Build # step 4: build the project
+      run: npm run build
+    - name: Test # step 5: run tests
+      run: npm test
+    - name: Check for updates # step 6: check if there are any updates to the code base
+      run: |
+        git fetch --prune
+        if [ `git rev-parse HEAD` = `git rev-parse @{u}` ]; then # if there are no updates, skip the deployment
+          echo "No updates available, skipping deployment"
+          exit 0
+        fi
+    - name: Wait for confirmation # step 7: wait for confirmation before deploying
+      run: |
+        echo "Deployment will start in 60 seconds. Press Ctrl+C to cancel."
+        for i in {60..0}; do
+          echo -ne "Deployment will start in $i seconds...\r"
+          sleep 1
+        done
+        echo -ne '\n'
+    - name: Deploy # step 8: deploy the project using SSH
+      uses: easingthemes/ssh-deploy@v2.1.5
+      with:
+        server: ${{ secrets.DEPLOY_SERVER }} # server IP address
+        username: ${{ secrets.DEPLOY_USERNAME }} # server username
+        password: ${{ secrets.DEPLOY_PASSWORD }} # server password
+        local_path: 'dist/' # local path of the project files to be deployed
+        remote_path: '/var/www/myapp' # remote path on the server to deploy the project to
+        args: "-rvz --delete" # additional arguments for the rsync command
+    - name: Log result # step 9: log the result of the workflow
+      if: ${{ success() }} # if the workflow was successful, log "Build, test, and deployment successful."
+      run: echo "Build, test, and deployment successful."
+    - name: Send error log message # step 10: log an error message if the workflow failed
+      if: failure() # if the workflow failed, log "Build, test, or deployment failed. Check the logs for details."
+      run: echo "Build, test, or deployment failed. Check the logs for details."
