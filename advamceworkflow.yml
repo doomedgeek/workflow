@@ -1,0 +1,36 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+    - name: Install Dependencies
+      run: npm install
+    - name: Build
+      run: npm run build
+    - name: Test
+      run: npm test
+    - name: Deploy
+      uses: easingthemes/ssh-deploy@v2.1.5
+      with:
+        server: ${{ secrets.DEPLOY_SERVER }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        password: ${{ secrets.DEPLOY_PASSWORD }}
+        local_path: 'dist/'
+        remote_path: '/var/www/myapp'
+        args: "-rvz --delete"
+    - name: Log result
+      if: ${{ success() }}
+      run: echo "Build, test, and deployment successful."
+    - name: Send error log message
+      if: failure()
+      run: echo "Build, test, or deployment failed. Check the logs for details."
