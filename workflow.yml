@@ -54,17 +54,17 @@ jobs:
       run: echo "Build, test, or deployment failed. Check the logs for details."
 
   backup:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout code
-uses: actions/checkout@v2
-- name: Backup files
-run: |
-ssh user@server-ip 'cd /path/to/repo && git pull'
-ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'
-- name: Delete backups older than 10 days
-run: |
-ssh user@server-ip '/usr/bin/find /path/to/repo/backups/* -mtime +10 -exec rm {} ;'
-schedule:
-- cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
-- cron: '0 0 */1 * *' # run backup cleanup job every day at midnight
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Backup files
+      run: |
+        ssh user@server-ip 'cd /path/to/repo && git pull'
+        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'
+    - name: Delete backups older than 10 days
+      run: |
+        ssh user@server-ip '/bin/bash /path/to/repo/delete-backups.sh'
+  schedule:
+    - cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
+    - cron: '0 0 */1 * *' # run backup cleanup job every day at midnight
