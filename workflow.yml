@@ -65,4 +65,6 @@ jobs:
       run: | # run the following shell commands
         ssh user@server-ip 'cd /path/to/repo && git pull' # connect to the server and pull the latest changes from the repository
         ssh user@server-ip '/bin/bash /path/to/repo/backup.sh' # run the backup script on the server
-    - name: Delete # name of the step (no commands provided)
+    - name: Delete old backups
+  run: |
+    ssh user@server-ip 'cd /path/to/backups && find . -name "*.tar.gz" -type f -mtime +10 -delete'
