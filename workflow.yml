@@ -5,8 +5,6 @@ on:
     branches: [ main ] # trigger the workflow only when there are new commits to the main branch
   push:
     branches: [ 'feature/*' ] # trigger the workflow for any feature branch
-  schedule:
-    - cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
 
 jobs:
   build:
@@ -55,16 +53,18 @@ jobs:
       if: failure() # if the workflow failed, log "Build, test, or deployment failed. Check the logs for details."
       run: echo "Build, test, or deployment failed. Check the logs for details."
 
-  backup: # define the name of the workflow
-  runs-on: ubuntu-latest # run the job on a Linux-based environment
-
-  steps: # define the steps of the workflow
-    - name: Checkout code # checkout the latest version of the code
-      uses: actions/checkout@v2 # use the GitHub Actions checkout action
-    - name: Backup files # name of the step
-      run: | # run the following shell commands
-        ssh user@server-ip 'cd /path/to/repo && git pull' # connect to the server and pull the latest changes from the repository
-        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh' # run the backup script on the server
-    - name: Delete old backups
-  run: |
-    ssh user@server-ip 'cd /path/to/backups && find . -name "*.tar.gz" -type f -mtime +10 -delete'
+  backup:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout code
+uses: actions/checkout@v2
+- name: Backup files
+run: |
+ssh user@server-ip 'cd /path/to/repo && git pull'
+ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'
+- name: Delete backups older than 10 days
+run: |
+ssh user@server-ip '/usr/bin/find /path/to/repo/backups/* -mtime +10 -exec rm {} ;'
+schedule:
+- cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
+- cron: '0 0 */1 * *' # run backup cleanup job every day at midnight
