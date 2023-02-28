@@ -54,17 +54,35 @@ jobs:
       run: echo "Build, test, or deployment failed. Check the logs for details."
 
   backup:
-  runs-on: ubuntu-latest  # specify the operating system to run the backup on
+  runs-on: ubuntu-latest
   steps:
-    - name: Checkout code  # checkout the repository code
+    - name: Checkout code
       uses: actions/checkout@v2
-    - name: Backup files  # run backup script on the server
+    - name: Backup files
       run: |
-        ssh user@server-ip 'cd /path/to/repo && git pull'  # pull the latest changes from the remote Git repository
-        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'  # run the backup script on the server
-    - name: Delete backups older than 10 days  # run backup cleanup script on the server
+        ssh user@server-ip 'cd /path/to/repo && git pull'
+        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'
+      # Check the exit status of the backup script and log a message accordingly
+      if: ${{ success() }}
+      # The backup job was successful
+      run: echo "Backup job completed successfully"
+      else:
+      # The backup job failed
+      run: echo "Backup job failed"
+    - name: Delete backups older than 10 days
       run: |
-        ssh user@server-ip '/bin/bash /path/to/repo/delete-backups.sh'  # run the script to delete old backups
-  schedule:  # specify the schedule for running backup and cleanup jobs
-    - cron: '0 22 */3 * *'  # run backup job every 3 days at 10:00 PM
-    - cron: '0 0 */1 * *'  # run backup cleanup job every day at midnight
+        ssh user@server-ip '/bin/bash /path/to/repo/delete-backups.sh'
+      # Check the exit status of the backup cleanup script and log a message accordingly
+      if: ${{ success() }}
+      # The backup cleanup job was successful
+      run: echo "Backup cleanup job completed successfully"
+      else:
+      # The backup cleanup job failed
+      run: echo "Backup cleanup job failed"
+  schedule:
+    - cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
+      # Log a message when the backup job is scheduled
+      run: echo "Backup job scheduled"
+    - cron: '0 0 */1 * *' # run backup cleanup job every day at midnight
+      # Log a message when the backup cleanup job is scheduled
+      run: echo "Backup cleanup job scheduled"
