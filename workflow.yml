@@ -54,17 +54,17 @@ jobs:
       run: echo "Build, test, or deployment failed. Check the logs for details."
 
   backup:
-  runs-on: ubuntu-latest
+  runs-on: ubuntu-latest  # specify the operating system to run the backup on
   steps:
-    - name: Checkout code
+    - name: Checkout code  # checkout the repository code
       uses: actions/checkout@v2
-    - name: Backup files
+    - name: Backup files  # run backup script on the server
       run: |
-        ssh user@server-ip 'cd /path/to/repo && git pull'
-        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'
-    - name: Delete backups older than 10 days
+        ssh user@server-ip 'cd /path/to/repo && git pull'  # pull the latest changes from the remote Git repository
+        ssh user@server-ip '/bin/bash /path/to/repo/backup.sh'  # run the backup script on the server
+    - name: Delete backups older than 10 days  # run backup cleanup script on the server
       run: |
-        ssh user@server-ip '/bin/bash /path/to/repo/delete-backups.sh'
-  schedule:
-    - cron: '0 22 */3 * *' # run backup job every 3 days at 10:00 PM
-    - cron: '0 0 */1 * *' # run backup cleanup job every day at midnight
+        ssh user@server-ip '/bin/bash /path/to/repo/delete-backups.sh'  # run the script to delete old backups
+  schedule:  # specify the schedule for running backup and cleanup jobs
+    - cron: '0 22 */3 * *'  # run backup job every 3 days at 10:00 PM
+    - cron: '0 0 */1 * *'  # run backup cleanup job every day at midnight
